@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>S1 Lookup</title>
+    </head>
+    <body>
+        <h1>S1 Lookup</h1>
+        <form action="/" method="POST">
+            <label for="company">Select a company:</label>
+            <select name="company" id="company">
+                {% for company in companies %}
+                <option value="{{ company }}">{{ company }}</option>
+                {% endfor %}
+            </select>
+            <br><br>
+            <button type="submit">Submit</button>
+        </form>
+    </body>
+</html>
