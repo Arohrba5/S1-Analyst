@@ -1,4 +1,5 @@
 from flask import Flask, render_template
+import os  # Import the 'os' module to access environment variables
 
 app = Flask(__name__)
 
