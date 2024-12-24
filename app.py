@@ -32,7 +32,7 @@ def get_companies():
             FROM cik_lookup
             WHERE company_name ILIKE %s
             LIMIT 10;
-        """, (f"%{query}%",))
+        """, (f"{query}%",))
         results = [row[0] for row in cursor.fetchall()]
         return jsonify(results)  # Send results back as JSON
     except Exception as e:
