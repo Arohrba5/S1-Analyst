@@ -4,11 +4,44 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>S1 Lookup</title>
+    <style>
+        /* Add basic styling for the dropdown */
+        .dropdown {
+            border: 1px solid #ccc;
+            max-height: 150px;
+            overflow-y: auto;
+            position: absolute;
+            background-color: white;
+            display: none; /* Initially hidden */
+            width: 300px; /* Match input width */
+            z-index: 1000;
+        }
+        .dropdown div {
+            padding: 8px;
+            cursor: pointer;
+        }
+        .dropdown div:hover {
+            background-color: #f0f0f0;
+        }
+    </style>
+</head>
+<body>
+    <label for="company-search">Select a company:</label>
+    <input type="text" id="company-search" autocomplete="off">
+    <div id="dropdown" class="dropdown"></div>
+
     <script>
-        async function fetchCompanies(query) {
+        const inputField = document.getElementById('company-search');
+        const dropdown = document.getElementById('dropdown');
+
+        // Add event listener to detect user input
+        inputField.addEventListener('input', async function () {
+            const query = inputField.value.trim();
+
+            // Clear the dropdown if the input is empty
             if (query.length === 0) {
-                // Clear the dropdown if the query is empty
-                document.getElementById('dropdown').innerHTML = '';
+                dropdown.style.display = 'none';
+                dropdown.innerHTML = '';
                 return;
             }
 
@@ -17,23 +50,36 @@
                 const companies = await response.json();
 
                 // Populate the dropdown
-                const dropdown = document.getElementById('dropdown');
                 dropdown.innerHTML = '';
-                companies.forEach(company => {
-                    const option = document.createElement('option');
-                    option.value = company;
-                    dropdown.appendChild(option);
-                });
+                if (companies.length > 0) {
+                    dropdown.style.display = 'block'; // Show dropdown
+                    companies.forEach(company => {
+                        const item = document.createElement('div');
+                        item.textContent = company;
+
+                        // Add a click listener to populate the input field on selection
+                        item.addEventListener('click', () => {
+                            inputField.value = company;
+                            dropdown.style.display = 'none'; // Hide dropdown after selection
+                        });
+
+                        dropdown.appendChild(item);
+                    });
+                } else {
+                    dropdown.style.display = 'none'; // Hide if no results
+                }
             } catch (error) {
                 console.error('Error fetching companies:', error);
+                dropdown.style.display = 'none'; // Hide dropdown on error
             }
-        }
+        });
+
+        // Hide dropdown if user clicks outside of it
+        document.addEventListener('click', (e) => {
+            if (!dropdown.contains(e.target) && e.target !== inputField) {
+                dropdown.style.display = 'none';
+            }
+        });
     </script>
-</head>
-<body>
-    <h1>S1 Lookup</h1>
-    <label for="company-search">Select a company:</label>
-    <input type="text" id="company-search" oninput="fetchCompanies(this.value)" list="dropdown">
-    <datalist id="dropdown"></datalist>
 </body>
 </html>
