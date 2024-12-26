@@ -1,0 +1,22 @@
+/* static/style.css */
+.dropdown {
+    border: 1px solid #ccc;
+    max-height: 150px;
+    overflow-y: auto;
+    position: absolute;
+    background-color: white;
+    display: none; /* Initially hidden */
+    width: 300px; /* Match input width */
+    z-index: 1000;
+}
+.dropdown div {
+    padding: 8px;
+    cursor: pointer;
+}
+.dropdown div:hover {
+    background-color: #f0f0f0;
+}
+a {
+    color: blue; /* Makes the link blue */
+    text-decoration: underline; /* Underlines the text */
+}
