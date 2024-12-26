@@ -1,0 +1,12 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    CIK Lookup
+{% endblock %}
+
+{% block main %}
+    <h1>CIK Lookup</h1>
+    <iframe src="https://www.sec.gov/edgar/searchedgar/companysearch.html" width="100%" height="600px" style="border: 1px solid #ccc;">
+        Your browser does not support iframes.
+    </iframe>
+{% endblock %}
