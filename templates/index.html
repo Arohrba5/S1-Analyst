@@ -1,72 +1,14 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>S1 Lookup</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
-<body>
-    <h1>S1 Lookup</h1> 
-    <label for="company-search">Select a company:</label>
-    <input type="text" id="company-search" autocomplete="off">
-    <div id="dropdown" class="dropdown"></div>
+{% extends "layout.html" %}
 
-    <script>
-        const inputField = document.getElementById('company-search');
-        const dropdown = document.getElementById('dropdown');
+{% block title %}
+    Home
+{% endblock %}
 
-        // Debounce timer to limit API requests
-        let debounceTimer;
-
-        inputField.addEventListener('input', function () {
-            clearTimeout(debounceTimer); // Clear the previous timer
-            debounceTimer = setTimeout(async () => {
-                const query = inputField.value.trim();
-
-                // Clear the dropdown if the input is empty
-                if (query.length === 0) {
-                    dropdown.style.display = 'none';
-                    dropdown.innerHTML = '';
-                    return;
-                }
-
-                try {
-                    const response = await fetch(`/get_companies?query=${query}`);
-                    const companies = await response.json();
-
-                    // Populate the dropdown
-                    dropdown.innerHTML = '';
-                    if (companies.length > 0) {
-                        dropdown.style.display = 'block'; // Show dropdown
-                        companies.forEach(company => {
-                            const item = document.createElement('div');
-                            item.textContent = company;
-
-                            // Add a click listener to populate the input field on selection
-                            item.addEventListener('click', () => {
-                                inputField.value = company;
-                                dropdown.style.display = 'none'; // Hide dropdown after selection
-                            });
-
-                            dropdown.appendChild(item);
-                        });
-                    } else {
-                        dropdown.style.display = 'none'; // Hide if no results
-                    }
-                } catch (error) {
-                    console.error('Error fetching companies:', error);
-                    dropdown.style.display = 'none'; // Hide dropdown on error
-                }
-            }, 300); // Wait 300ms before making the API call
-        });
-
-        // Hide dropdown if user clicks outside of it
-        document.addEventListener('click', (e) => {
-            if (!dropdown.contains(e.target) && e.target !== inputField) {
-                dropdown.style.display = 'none';
-            }
-        });
-    </script>
-</body>
-</html>
+{% block main %}
+    <h1>Welcome to S1 Lookup</h1>
+    <form action="/submit_cik" method="post">
+        <label for="cik-input">Enter a CIK:</label>
+        <input type="text" id="cik-input" name="cik" required>
+        <button type="submit">Lookup S-1</button>
+    </form>
+{% endblock %}
