@@ -17,9 +17,9 @@
     background-color: #f0f0f0;
 }
 a {
-    color: blue; /* Makes the link blue */
+    color: blue;
     text-decoration: underline; /* Underlines the text */
 }
 footer {
-    padding-top: 20px; /* Adds 20px of space above the footer text */
+    color: gray; 
 }
