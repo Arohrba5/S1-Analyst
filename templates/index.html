@@ -16,44 +16,49 @@
         const inputField = document.getElementById('company-search');
         const dropdown = document.getElementById('dropdown');
 
-        // Add event listener to detect user input
-        inputField.addEventListener('input', async function () {
-            const query = inputField.value.trim();
+        // Debounce timer to limit API requests
+        let debounceTimer;
 
-            // Clear the dropdown if the input is empty
-            if (query.length === 0) {
-                dropdown.style.display = 'none';
-                dropdown.innerHTML = '';
-                return;
-            }
+        inputField.addEventListener('input', function () {
+            clearTimeout(debounceTimer); // Clear the previous timer
+            debounceTimer = setTimeout(async () => {
+                const query = inputField.value.trim();
 
-            try {
-                const response = await fetch(`/get_companies?query=${query}`);
-                const companies = await response.json();
-
-                // Populate the dropdown
-                dropdown.innerHTML = '';
-                if (companies.length > 0) {
-                    dropdown.style.display = 'block'; // Show dropdown
-                    companies.forEach(company => {
-                        const item = document.createElement('div');
-                        item.textContent = company;
-
-                        // Add a click listener to populate the input field on selection
-                        item.addEventListener('click', () => {
-                            inputField.value = company;
-                            dropdown.style.display = 'none'; // Hide dropdown after selection
-                        });
-
-                        dropdown.appendChild(item);
-                    });
-                } else {
-                    dropdown.style.display = 'none'; // Hide if no results
+                // Clear the dropdown if the input is empty
+                if (query.length === 0) {
+                    dropdown.style.display = 'none';
+                    dropdown.innerHTML = '';
+                    return;
                 }
-            } catch (error) {
-                console.error('Error fetching companies:', error);
-                dropdown.style.display = 'none'; // Hide dropdown on error
-            }
+
+                try {
+                    const response = await fetch(`/get_companies?query=${query}`);
+                    const companies = await response.json();
+
+                    // Populate the dropdown
+                    dropdown.innerHTML = '';
+                    if (companies.length > 0) {
+                        dropdown.style.display = 'block'; // Show dropdown
+                        companies.forEach(company => {
+                            const item = document.createElement('div');
+                            item.textContent = company;
+
+                            // Add a click listener to populate the input field on selection
+                            item.addEventListener('click', () => {
+                                inputField.value = company;
+                                dropdown.style.display = 'none'; // Hide dropdown after selection
+                            });
+
+                            dropdown.appendChild(item);
+                        });
+                    } else {
+                        dropdown.style.display = 'none'; // Hide if no results
+                    }
+                } catch (error) {
+                    console.error('Error fetching companies:', error);
+                    dropdown.style.display = 'none'; // Hide dropdown on error
+                }
+            }, 300); // Wait 300ms before making the API call
         });
 
         // Hide dropdown if user clicks outside of it
