@@ -4,26 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>S1 Lookup</title>
-    <style>
-        /* Add basic styling for the dropdown */
-        .dropdown {
-            border: 1px solid #ccc;
-            max-height: 150px;
-            overflow-y: auto;
-            position: absolute;
-            background-color: white;
-            display: none; /* Initially hidden */
-            width: 300px; /* Match input width */
-            z-index: 1000;
-        }
-        .dropdown div {
-            padding: 8px;
-            cursor: pointer;
-        }
-        .dropdown div:hover {
-            background-color: #f0f0f0;
-        }
-    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
     <h1>S1 Lookup</h1> 
