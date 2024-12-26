@@ -8,9 +8,9 @@ app = Flask(__name__)
 def home():
     return render_template('index.html')
 
-@app.route('/cik_lookup')
+@app.route('/about')
 def cik_lookup():
-    return render_template('cik_lookup.html')
+    return render_template('about.html')
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))  # Use PORT if provided, otherwise default to 5000
