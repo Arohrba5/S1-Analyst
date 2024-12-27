@@ -8,7 +8,7 @@ app = Flask(__name__)
 def get_latest_s1_filing(cik):
     # Ensure 10-digit entry with padding
     cik = cik.zfill(10)
-    url = f"https://data.sec.gov/submissions/cik{cik}.json"
+    url = f"https://data.sec.gov/submissions/CIK{cik}.json"
     headers = {"User-Agent": "S1 Analyst (alex.s.rohrbach@gmail.com)"}
 
     response = requests.get(url, headers=headers)
@@ -22,10 +22,14 @@ def get_latest_s1_filing(cik):
     accession_numbers = filings.get('accessionNumber', [])
     filing_dates = filings.get('filingDate', [])
 
+    # Ensure all lists are of the same length
+    if not (len(form_types) == len(accession_numbers) == len(filing_dates)):
+        return {"error": "Malformed data received from SEC Edgar."}
+
     # Find latest S-1
     s1_filings = [
-        (form, accession, data)
-        for form, accession, data in zip(form_types, accession_numbers, filing_dates)
+        (form, accession, date)
+        for form, accession, date in zip(form_types, accession_numbers, filing_dates)
         if form in ["S-1", "S-1/A"]
     ]
 
