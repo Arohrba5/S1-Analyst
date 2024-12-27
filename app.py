@@ -44,6 +44,20 @@ def get_latest_s1_filing(cik):
 def home():
     return render_template('index.html')
 
+@app.route('/search',methods=['POST'])
+def search():
+    cik = request.form.get('cik')
+    if not cik:
+        return render_template('index.html', error="Please enter valid CIK.")
+    # NTD: Add more cik checks before proceding to helper function
+    
+    result = get_latest_s1_filing(cik)
+    if "error" in result:
+        return render_template('index.html', error=result["error"])
+    
+    # Pass result to new page
+    return render_template('result.html', filing=result)
+
 @app.route('/about')
 def cik_lookup():
     return render_template('about.html')
