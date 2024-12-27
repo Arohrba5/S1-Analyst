@@ -36,7 +36,7 @@ def get_latest_s1_filing(cik):
     ]
 
     if not s1_filings:
-        return {"error": "No filings found for this CIK."}
+        return {"error": "No S-1 filing found for this CIK."}
     
     # Sort by filing data
     s1_filings.sort(key=lambda x: x[2], reverse=True)
