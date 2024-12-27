@@ -1,0 +1,21 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    S-1 Filing
+{% endblock %}
+
+{% block main %}
+    <h1>S-1 Filing Lookup Result</h1>
+
+    {% if filing %}
+    <p><strong>Form Type:</strong> {{ filing.formType }}</p>
+    <p><strong>Filing Date:</strong> {{ filing.filingDate }}</p>
+    <p><strong>Filing Link:</strong> 
+        <a href="{{ filing.url }}" target="_blank" rel="noopener">View Filing</a>
+    </p>
+    {% else %}
+        <p style="color: red;">No filing information available.</p>
+    {% endif %}
+
+<p><a href="/">Go back to the search page</a></p>
+{% endblock %}
