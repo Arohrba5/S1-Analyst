@@ -65,7 +65,11 @@ def search():
     
     result = get_latest_s1_filing(cik)
     if "error" in result:
-        return render_template('index.html', error=result["error"])
+        # Fallback for old filings
+        return render_template(
+            'index.html', 
+            error=f"{result['error']} If the company has been public for a long time, its S-1 may no longer appear in recent filings. Visit SEC Edgar to search manually: https://www.sec.gov/edgar/searchedgar/companysearch.html"
+        )
     
     # Pass result to new page
     return render_template('result.html', filing=result)
