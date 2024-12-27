@@ -21,15 +21,17 @@ def get_latest_s1_filing(cik):
     form_types = filings.get('form', [])
     accession_numbers = filings.get('accessionNumber', [])
     filing_dates = filings.get('filingDate', [])
+    primary_documents = filings.get('primaryDocument', [])
+
 
     # Ensure all lists are of the same length
-    if not (len(form_types) == len(accession_numbers) == len(filing_dates)):
+    if not (len(form_types) == len(accession_numbers) == len(filing_dates) == len(primary_documents)):
         return {"error": "Malformed data received from SEC Edgar."}
 
     # Find latest S-1
     s1_filings = [
-        (form, accession, date)
-        for form, accession, date in zip(form_types, accession_numbers, filing_dates)
+        (form, accession, date, document)
+        for form, accession, date, document in zip(form_types, accession_numbers, filing_dates, primary_documents)
         if form in ["S-1", "S-1/A"]
     ]
 
@@ -40,8 +42,10 @@ def get_latest_s1_filing(cik):
     s1_filings.sort(key=lambda x: x[2], reverse=True)
 
     latest_filing = s1_filings[0]
-    filing_url = f"https://www.sec.gov/Archives/edgar/data/{cik}/{latest_filing[1].replace('-', '')}/index.htm"
-
+    formatted_accession = latest_filing[1].replace("-", "")  # Remove hyphens from accession number
+    document_name = latest_filing[3]  # Get the primary document name
+    filing_url = f"https://www.sec.gov/Archives/edgar/data/{int(cik)}/{formatted_accession}/{document_name}"
+    
     return {"formType": latest_filing[0], "filingDate": latest_filing[2], "url": filing_url}
 
 @app.route('/')
