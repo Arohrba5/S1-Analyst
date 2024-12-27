@@ -46,10 +46,14 @@ def home():
 
 @app.route('/search',methods=['POST'])
 def search():
-    cik = request.form.get('cik')
+    cik = request.form.get('cik','').strip()
+
     if not cik:
-        return render_template('index.html', error="Please enter valid CIK.")
-    # NTD: Add more cik checks before proceding to helper function
+        return render_template('index.html', error="Please enter a CIK.")
+    if not cik.isdigit():
+        return render_template('index.html', error="CIK must be a numeric value.")
+    if len(cik) > 10:
+        return render_template('index.html', error="CIK must be at most 10 digits long.")
     
     result = get_latest_s1_filing(cik)
     if "error" in result:
@@ -59,7 +63,7 @@ def search():
     return render_template('result.html', filing=result)
 
 @app.route('/about')
-def cik_lookup():
+def about():
     return render_template('about.html')
 
 if __name__ == "__main__":
