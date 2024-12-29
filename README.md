@@ -1,7 +1,7 @@
-# S1 Analyst App
+# S1 Analyst Flask App
 
 ## Overview
-This MVP version of the S-1 Analyst App is designed for users to quickly find and access SEC S-1 filings. As a venture capitalist, I find it helpful to study S-1 filings to see how late-stage companies position their products and analyze their financial growth.
+This MVP version of the S-1 Analyst App is designed for users to quickly find and access SEC S-1 filings. As a venture capitalist, I find it helpful to study S-1 filings to see how pre-IPO companies position their products/services and analyze their financial growth.
 
 In future iterations, the app will include parsing and analysis of S-1 documents to:
  - Summarize key sections (e.g., company overview, business riks) 
@@ -9,7 +9,7 @@ In future iterations, the app will include parsing and analysis of S-1 documents
  - Identify key noteworthy quotes
 
 ## What is an S-1 Filing?
-SEC Form S-1 is the initial registration form required by the SEC for new securities offered by public companies in the US. S-1 filings are typically submitted by private companies as they prepare to go public. These documents can be updated multiple times, so this app focuses on retrieving the most recent version of a company's S-1 filing.
+SEC Form S-1 is the initial registration form required by the SEC for new securities offered by public companies in the US. S-1 filings are typically submitted by private companies as they prepare to go public. These documents can be updated multiple times, so this app retrieves the most recent version of a company's S-1 filing.
 
 ## Features
  - **Quick Access**: Fetch and display the latest S-1 filing for a given company using its CIK (Central Index Key).
