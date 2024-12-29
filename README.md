@@ -45,3 +45,5 @@ This project is licensed under the MIT License. See the LICENSE file for details
 
 ## CS50 Final Project
 I created this app as a final project for CS50 and recorded a demo video here: https://youtu.be/uZrXA0qyCVc
+
+Link to github repository: https://github.com/Arohrba5/S1-Analyst
