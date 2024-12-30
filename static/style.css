@@ -1,6 +1,6 @@
-/* static/style.css */
+/* Dropdown Styling */
 .dropdown {
-    border: 1px solid #ccc;
+    border: 1px solid #ccc; /* Light border for dropdown */
     max-height: 150px;
     overflow-y: auto;
     position: absolute;
@@ -14,12 +14,64 @@
     cursor: pointer;
 }
 .dropdown div:hover {
-    background-color: #f0f0f0;
+    background-color: #f0f0f0; /* Subtle hover effect */
 }
+
+/* Link Styling */
 a {
-    color: blue;
-    text-decoration: underline; /* Underlines the text */
+    color: #4a90e2; /* Matches navbar and button color */
+    text-decoration: none; /* Removes underline for cleaner look */
 }
+a:hover {
+    text-decoration: underline; /* Underline on hover */
+    color: #357abd; /* Slightly darker blue for hover */
+}
+
+/* Footer Styling */
 footer {
-    color: gray; 
+    color: gray;
+    font-size: 0.9rem; /* Slightly smaller text */
+    text-align: center; /* Centers footer content */
+    margin-top: 2rem; /* Adds spacing above footer */
+}
+
+/* Button Styling */
+.btn-primary {
+    background-color: #4a90e2; /* Matches navbar color */
+    color: white; /* White text for contrast */
+    border: none; /* Removes border */
+    border-radius: 20px; /* Rounded corners for modern look */
+    padding: 0.5rem 1.5rem; /* Balanced padding */
+    font-weight: bold; /* Makes text bold */
+    transition: background-color 0.3s, transform 0.2s; /* Smooth hover effect */
+}
+.btn-primary:hover {
+    background-color: #357abd; /* Slightly darker blue on hover */
+    transform: scale(1.05); /* Slightly enlarges button on hover */
+}
+
+/* Input Field Styling */
+.form-control {
+    max-width: 300px; /* Match dropdown width */
+    display: inline-block;
+    margin-right: 10px;
+    border-radius: 5px; /* Slightly rounded corners */
+    border: 1px solid #ccc; /* Subtle border */
+    padding: 0.5rem; /* Comfortable padding */
+    box-shadow: none; /* Removes default input shadow */
+}
+
+/* Navbar Link Styling */
+.nav-link {
+    font-weight: bold;
+    color: white !important; /* Ensures white text */
+}
+.nav-link:hover {
+    text-decoration: none;
+    color: #dfefff; /* Slightly lighter blue for hover */
+}
+
+/* General Form Alignment */
+form {
+    margin-top: 1rem; /* Adds spacing between elements */
 }
