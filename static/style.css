@@ -43,12 +43,13 @@ footer {
     color: gray;
     font-size: 0.9rem; /* Slightly smaller text */
     text-align: left; /* Left footer content */
-    margin-top: 1rem; /* Adds spacing above footer */
+    margin-left: 0.5rem; /* Adds spacing above footer */
+    margin-top: 0.5rem; /* Adds spacing above footer */
 }
 
 /* Button Styling */
 .btn-primary {
-    background-color: #4a90e2; /* Matches navbar color */
+    background-color: #4a90e2 !important; /* Matches navbar color */
     color: white; /* White text for contrast */
     border: none; /* Removes border */
     border-radius: 20px; /* Rounded corners for modern look */
