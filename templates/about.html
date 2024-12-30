@@ -6,5 +6,30 @@
 
 {% block main %}
     <h1>About</h1>
-    <h3>Coming soon...</h3>
+    <p>This MVP version of the S-1 Analyst App is designed for users to quickly find and access SEC S-1 filings. 
+        As a venture capitalist, I find it helpful to study S-1 filings to see how pre-IPO companies position their 
+        products/services and analyze their financial growth.
+    </p>
+
+    <p>
+        In future iterations, the app will include parsing and analysis of S-1 documents to:
+    </p>
+    <ul>
+        <li>Summarize key sections (e.g., company overview, business risks)</li>
+        <li>Identify and visualize financial trends</li>
+        <li>Identify key noteworthy quotes</li>
+    </ul>
+    
+    <p>
+        Technical Details
+    </p>
+    <ul>
+        <li><strong>Framework:</strong> Flask (Python)</li>
+        <li><strong>Hosting:</strong> Heroku (via: <a href="https://www.s1analyst.app/" target="_blank">https://www.s1analyst.app/</a>)</li>
+        <li><strong>Backend:</strong> PostgreSQL database</li>
+        <li><strong>Templating Engine:</strong> Jinja for dynamically rendering HTML pages</li>
+        <li><strong>Data Source:</strong> SEC's EDGAR RESTful APIs 
+            (<a href="https://www.sec.gov/search-filings/edgar-application-programming-interfaces" target="_blank">API Documentation</a>)
+        </li>
+    </ul>
 {% endblock %}
