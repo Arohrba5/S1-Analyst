@@ -1,3 +1,14 @@
+/* Global styles for the website */
+body {
+    font-family: "Helvetica", "Arial", sans-serif; /* Global font */
+    font-size: 16px; /* Default text size */
+    line-height: 1.6; /* Vertical spacing for readability */
+    color: #333; /* Default text color (dark gray) */
+    margin: 0; /* Removes default browser margins */
+    padding: 0; /* Removes default browser padding */
+    background-color: #fff; /* Sets a white background */
+}
+
 /* Dropdown Styling */
 .dropdown {
     border: 1px solid #ccc; /* Light border for dropdown */
@@ -31,8 +42,8 @@ a:hover {
 footer {
     color: gray;
     font-size: 0.9rem; /* Slightly smaller text */
-    text-align: center; /* Centers footer content */
-    margin-top: 2rem; /* Adds spacing above footer */
+    text-align: left; /* Left footer content */
+    margin-top: 1rem; /* Adds spacing above footer */
 }
 
 /* Button Styling */
