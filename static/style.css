@@ -1,6 +1,6 @@
 /* Global styles for the website */
 body {
-    font-family: "Helvetica Neue", "Helvetica", "Arial", sans-serif; /* Global font */
+    font-family: "Inter", "Helvetica Neue", "Helvetica", "Arial", sans-serif; /* Global font */
     font-size: 16px; /* Default text size */
     line-height: 1.6; /* Vertical spacing for readability */
     color: #333; /* Default text color (dark gray) */
