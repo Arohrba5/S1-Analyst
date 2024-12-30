@@ -41,7 +41,6 @@ a:hover {
 /* Footer Styling */
 footer {
     color: gray;
-    font-size: 0.9rem; /* Slightly smaller text */
     text-align: left; /* Left footer content */
     margin-left: 0.5rem; /* Adds spacing above footer */
     margin-top: 0.5rem; /* Adds spacing above footer */
@@ -60,6 +59,13 @@ footer {
 .btn-primary:hover {
     background-color: #357abd; /* Slightly darker blue on hover */
     transform: scale(1.05); /* Slightly enlarges button on hover */
+}
+
+/* Align Button with Input Field */
+form .btn-primary {
+    vertical-align: top;
+    height: calc(100% - 2px);
+    margin: 0;
 }
 
 /* Input Field Styling */
