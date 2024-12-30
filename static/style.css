@@ -99,3 +99,8 @@ form .btn-primary {
 form {
     margin-top: 1rem; /* Adds spacing between elements */
 }
+
+/* Header 1 font size */
+h1 {
+    font-size: 2rem; /* Adjust the size as needed */
+}
