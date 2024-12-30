@@ -87,7 +87,6 @@ form .btn-primary {
 
 /* Navbar Link Styling */
 .nav-link {
-    font-weight: bold;
     color: white !important; /* Ensures white text */
 }
 .nav-link:hover {
