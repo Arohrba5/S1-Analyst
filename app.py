@@ -22,7 +22,10 @@ def update_submissions_data():
 
         # Download zip file
         logging.info("Downloading ZIP file from SEC...")
-        response = requests.get(SEC_BULK_DATA_URL, stream=True)
+        headers = {
+            "User-Agent": "S1 Analyst (alex.s.rohrbach@gmail.com)"
+        }
+        response = requests.get(SEC_BULK_DATA_URL, headers=headers, stream=True)
         if response.status_code == 200:
             with open(zip_path, "wb") as f:
                 for chunk in response.iter_content(chunk_size=8192):
