@@ -67,7 +67,7 @@ def search():
         # Fallback for old filings
         return render_template(
             'index.html', 
-            error=f"{result['error']} Filings older than one year may not appear.<br>Search Edgar for older filings:<br>https://www.sec.gov/edgar/searchedgar/companysearch.html"
+            error=f"{result['error']} Filings older than one year may not appear. Search Edgar for older filings: https://www.sec.gov/edgar/searchedgar/companysearch.html"
         )
     
     # Pass result to new page
