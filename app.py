@@ -67,7 +67,7 @@ def search():
         # Fallback for old filings
         return render_template(
             'index.html', 
-            error=f"{result['error']} If the company has been public for a long time, its S-1 may no longer appear in recent filings. Visit SEC Edgar to search: https://www.sec.gov/edgar/searchedgar/companysearch.html"
+            error=f"{result['error']} Filings older than one year may not appear. filings. Search Edgar for older filings: https://www.sec.gov/edgar/searchedgar/companysearch.html"
         )
     
     # Pass result to new page
