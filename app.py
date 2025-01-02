@@ -23,7 +23,7 @@ def update_submissions_data():
         if not os.path.exists(extract_to):
             os.makedirs(extract_to)
 
-        # Download zip file
+        # Download ZIP file
         logging.info("Downloading ZIP file from SEC...")
         headers = {"User-Agent": "S1 Analyst (alex.s.rohrbach@gmail.com)"}
         response = requests.get(SEC_BULK_DATA_URL, headers=headers, stream=True)
@@ -31,18 +31,18 @@ def update_submissions_data():
             with open(zip_path, "wb") as f:
                 for chunk in response.iter_content(chunk_size=8192):
                     f.write(chunk)
-            logging.info("Zip file downloaded successfully")
+            logging.info("ZIP file downloaded successfully.")
         else:
-            logging.error(f"Failed to download zip file. status code: {response.status_code}")
-            raise Exception ("Failed to download zip file")
-        
+            logging.error(f"Failed to download ZIP file. Status code: {response.status_code}")
+            raise Exception("Failed to download ZIP file.")
+
         # Process the ZIP file incrementally
         logging.info("Processing ZIP file incrementally...")
         conn = psycopg2.connect(DB_CONNECTION)
         cursor = conn.cursor()
 
-        # Truncate the submission table
-        logging.info("Truncating the submission table")
+        # Truncate the submissions table
+        logging.info("Truncating the submissions table...")
         cursor.execute("TRUNCATE TABLE submissions;")
 
         with zipfile.ZipFile(zip_path, "r") as zip_ref:
@@ -50,11 +50,13 @@ def update_submissions_data():
                 if file_name.endswith(".json"):
                     logging.info(f"Processing file: {file_name}")
                     with zip_ref.open(file_name) as f:
-                        # Process JSON line-by-line (if applicable)
-                        data = json.load(f)
-                        for cik, submission in data.items():
-                            company_name = submission.get("name", "Unknown")
-                            filings = submission.get("filings", {}).get("recent", {})
+                        # Process line-by-line if the JSON is line-delimited
+                        batch = []
+                        for line in f:
+                            record = json.loads(line)  # Process each JSON line
+                            cik = record.get("cik", "Unknown")
+                            company_name = record.get("name", "Unknown")
+                            filings = record.get("filings", {}).get("recent", {})
                             for i, form in enumerate(filings.get("form", [])):
                                 filing_date = filings.get("filingDate", [])[i]
                                 accession_number = filings.get("accessionNumber", [])[i]
@@ -63,13 +65,32 @@ def update_submissions_data():
                                     "filingDate": filing_date,
                                     "accessionNumber": accession_number
                                 })
-                                cursor.execute(
-                                    """
-                                    INSERT INTO submissions (cik, company_name, filing_date, form_type, accession_number, raw_data)
-                                    VALUES (%s, %s, %s, %s, %s, %s);
-                                    """,
-                                    (cik, company_name, filing_date, form, accession_number, raw_data)
-                                )
+                                batch.append((cik, company_name, filing_date, form, accession_number, raw_data))
+
+                                # Insert in smaller batches
+                                if len(batch) >= 50:
+                                    cursor.executemany(
+                                        """
+                                        INSERT INTO submissions (cik, company_name, filing_date, form_type, accession_number, raw_data)
+                                        VALUES (%s, %s, %s, %s, %s, %s);
+                                        """,
+                                        batch
+                                    )
+                                    conn.commit()
+                                    batch = []  # Clear the batch after committing
+
+                        # Commit any remaining records
+                        if batch:
+                            cursor.executemany(
+                                """
+                                INSERT INTO submissions (cik, company_name, filing_date, form_type, accession_number, raw_data)
+                                VALUES (%s, %s, %s, %s, %s, %s);
+                                """,
+                                batch
+                            )
+                            conn.commit()
+
+                    logging.info(f"Finished processing file: {file_name}")
 
         conn.commit()
         cursor.close()
