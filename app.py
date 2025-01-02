@@ -2,10 +2,84 @@ from flask import Flask, render_template, request, jsonify
 import os
 import psycopg2
 import requests
+import zipfile
+import json
+import logging
 
 app = Flask(__name__)
 
+SEC_BULK_DATA_URL = "https://www.sec.gov/Archives/edgar/daily-index/bulkdata/submissions.zip"
+DB_CONNECTION = os.environ.get("DATABASE_URL")  # Heroku Postgres connection string
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+
+def update_submissions_data():
+    """Download, extract, and update the database with the latest submissions data."""
+    try:
+        # Paths
+        zip_path = "submissions.zip"
+        extract_to = "extracted_data"
+        data_file = os.path.join(extract_to, "submissions.json")
+
+        # Download zip file
+        logging.info("Downloading ZIP file from SEC...")
+        response = requests.get(SEC_BULK_DATA_URL, stream=True)
+        if response.status_code == 200:
+            with open(zip_path, "wb") as f:
+                for chunk in response.iter_content(chunk_size=8192):
+                    f.write(chunk)
+            logging.info("Zip file downloaded successfully")
+        else:
+            logging.error(f"Failed to download zip file. status code: {response.status_code}")
+            raise Exception ("Failed to download zip file")
+        
+        # Extract zip file
+        logging.info("Extracting zip file...")
+        with zipfile.ZipFile(zip_path, "r") as zip_ref:
+            zip_ref.extractall(extract_to)
+        logging.info("Zip file extracted successfully.")
+
+        # Update the database
+        logging.info("Connecting to the database")
+        conn = psycopg2.connect(DB_CONNECTION)
+        cursor = conn.cursor()
+
+        # Truncate the submission table
+        logging.info("Truncating the submission table")
+        cursor.execute("TRUNCATE TABLE submissions;")
+
+        # Insert new data
+        logging.info("Inserting new data into the database...")
+        with open(data_file, "r") as f:
+            data = json.load(f)
+            for cik, submission in data.items():
+                company_name = submission.get("name", "Unknown")
+                filings = submission.get("filings", {}).get("recent", {})
+                for i, form in enumerate(filings.get("form", [])):
+                    filing_date = filings.get("filingDate", [])[i]
+                    accession_number = filings.get("accessionNumber", [])[i]
+                    raw_data = json.dumps({
+                        "form": form,
+                        "filingDate": filing_date,
+                        "accessionNumber": accession_number
+                    })
+                    cursor.execute(
+                        """
+                        INSERT INTO submissions (cik, company_name, filing_date, form_type, accession_number, raw_data)
+                        VALUES (%s, %s, %s, %s, %s, %s);
+                        """,
+                        (cik, company_name, filing_date, form, accession_number, raw_data)
+                    )
+
+        conn.commit()
+        cursor.close()
+        conn.close()
+        logging.info("Database updated successfully.")
+
+    except Exception as e:
+        logging.error(f"An error occurred: {e}")
+
 def get_latest_s1_filing(cik):
+    """Extract cik from user. Find latest s-1 for company. Return dictionary of necessary info for lookup. """
     # Ensure 10-digit entry with padding
     cik = cik.zfill(10)
     url = f"https://data.sec.gov/submissions/CIK{cik}.json"
@@ -76,6 +150,16 @@ def search():
 @app.route('/about')
 def about():
     return render_template('about.html')
+
+@app.route('/update-submissions', methods=['POST'])
+def trigger_update():
+    """Trigger submissions update manually"""
+    try:
+        update_submissions_data()
+        return jsonify({"status": "success", "message": "Submissions data updated successfully!"}), 200
+    except Exception as e:
+        logging.error(f"Error during update: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
