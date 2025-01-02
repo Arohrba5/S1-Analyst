@@ -18,13 +18,14 @@ def update_submissions_data():
         # Paths
         zip_path = "submissions.zip"
         extract_to = "extracted_data"
-        data_file = os.path.join(extract_to, "submissions.json")
+
+        # Ensure the extraction directory exists
+        if not os.path.exists(extract_to):
+            os.makedirs(extract_to)
 
         # Download zip file
         logging.info("Downloading ZIP file from SEC...")
-        headers = {
-            "User-Agent": "S1 Analyst (alex.s.rohrbach@gmail.com)"
-        }
+        headers = {"User-Agent": "S1 Analyst (alex.s.rohrbach@gmail.com)"}
         response = requests.get(SEC_BULK_DATA_URL, headers=headers, stream=True)
         if response.status_code == 200:
             with open(zip_path, "wb") as f:
@@ -35,14 +36,8 @@ def update_submissions_data():
             logging.error(f"Failed to download zip file. status code: {response.status_code}")
             raise Exception ("Failed to download zip file")
         
-        # Extract zip file
-        logging.info("Extracting zip file...")
-        with zipfile.ZipFile(zip_path, "r") as zip_ref:
-            zip_ref.extractall(extract_to)
-        logging.info("Zip file extracted successfully.")
-
-        # Update the database
-        logging.info("Connecting to the database")
+        # Process the ZIP file incrementally
+        logging.info("Processing ZIP file incrementally...")
         conn = psycopg2.connect(DB_CONNECTION)
         cursor = conn.cursor()
 
@@ -50,28 +45,31 @@ def update_submissions_data():
         logging.info("Truncating the submission table")
         cursor.execute("TRUNCATE TABLE submissions;")
 
-        # Insert new data
-        logging.info("Inserting new data into the database...")
-        with open(data_file, "r") as f:
-            data = json.load(f)
-            for cik, submission in data.items():
-                company_name = submission.get("name", "Unknown")
-                filings = submission.get("filings", {}).get("recent", {})
-                for i, form in enumerate(filings.get("form", [])):
-                    filing_date = filings.get("filingDate", [])[i]
-                    accession_number = filings.get("accessionNumber", [])[i]
-                    raw_data = json.dumps({
-                        "form": form,
-                        "filingDate": filing_date,
-                        "accessionNumber": accession_number
-                    })
-                    cursor.execute(
-                        """
-                        INSERT INTO submissions (cik, company_name, filing_date, form_type, accession_number, raw_data)
-                        VALUES (%s, %s, %s, %s, %s, %s);
-                        """,
-                        (cik, company_name, filing_date, form, accession_number, raw_data)
-                    )
+        with zipfile.ZipFile(zip_path, "r") as zip_ref:
+            for file_name in zip_ref.namelist():
+                if file_name.endswith(".json"):
+                    logging.info(f"Processing file: {file_name}")
+                    with zip_ref.open(file_name) as f:
+                        # Process JSON line-by-line (if applicable)
+                        data = json.load(f)
+                        for cik, submission in data.items():
+                            company_name = submission.get("name", "Unknown")
+                            filings = submission.get("filings", {}).get("recent", {})
+                            for i, form in enumerate(filings.get("form", [])):
+                                filing_date = filings.get("filingDate", [])[i]
+                                accession_number = filings.get("accessionNumber", [])[i]
+                                raw_data = json.dumps({
+                                    "form": form,
+                                    "filingDate": filing_date,
+                                    "accessionNumber": accession_number
+                                })
+                                cursor.execute(
+                                    """
+                                    INSERT INTO submissions (cik, company_name, filing_date, form_type, accession_number, raw_data)
+                                    VALUES (%s, %s, %s, %s, %s, %s);
+                                    """,
+                                    (cik, company_name, filing_date, form, accession_number, raw_data)
+                                )
 
         conn.commit()
         cursor.close()
