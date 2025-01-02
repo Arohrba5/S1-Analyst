@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, jsonify
-import os  # Import the 'os' module to access environment variables
-import psycopg2  # To connect to PostgreSQL
+import os
+import psycopg2
 import requests
 
 app = Flask(__name__)
@@ -22,7 +22,6 @@ def get_latest_s1_filing(cik):
     accession_numbers = filings.get('accessionNumber', [])
     filing_dates = filings.get('filingDate', [])
     primary_documents = filings.get('primaryDocument', [])
-
 
     # Ensure all lists are of the same length
     if not (len(form_types) == len(accession_numbers) == len(filing_dates) == len(primary_documents)):
@@ -60,15 +59,15 @@ def search():
         return render_template('index.html', error="Please enter a CIK.")
     if not cik.isdigit():
         return render_template('index.html', error="CIK must be a numeric value.")
-    if len(cik) > 10:
-        return render_template('index.html', error="CIK must be at most 10 digits long.")
+    if len(cik) != 10:
+        return render_template('index.html', error="CIK must be 10 digits in length.")
     
     result = get_latest_s1_filing(cik)
     if "error" in result:
         # Fallback for old filings
         return render_template(
             'index.html', 
-            error=f"{result['error']} If the company has been public for a long time, its S-1 may no longer appear in recent filings. Visit SEC Edgar to search manually: https://www.sec.gov/edgar/searchedgar/companysearch.html"
+            error=f"{result['error']} If the company has been public for a long time, its S-1 may no longer appear in recent filings. Visit SEC Edgar to search: https://www.sec.gov/edgar/searchedgar/companysearch.html"
         )
     
     # Pass result to new page
@@ -79,5 +78,5 @@ def about():
     return render_template('about.html')
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))  # Use PORT if provided, otherwise default to 5000
-    app.run(host="0.0.0.0", port=port, debug=True)        # Use 0.0.0.0 to accept connections from any IP
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port, debug=True)
