@@ -17,11 +17,6 @@ def update_submissions_data():
     try:
         # Paths
         zip_path = "submissions.zip"
-        extract_to = "extracted_data"
-
-        # Ensure the extraction directory exists
-        if not os.path.exists(extract_to):
-            os.makedirs(extract_to)
 
         # Download ZIP file
         logging.info("Downloading ZIP file from SEC...")
@@ -46,51 +41,19 @@ def update_submissions_data():
         cursor.execute("TRUNCATE TABLE submissions;")
 
         with zipfile.ZipFile(zip_path, "r") as zip_ref:
+            file_batch = []  # Batch to hold file names
             for file_name in zip_ref.namelist():
                 if file_name.endswith(".json"):
-                    logging.info(f"Processing file: {file_name}")
-                    with zip_ref.open(file_name) as f:
-                        # Process line-by-line if the JSON is line-delimited
-                        batch = []
-                        for line in f:
-                            record = json.loads(line)  # Process each JSON line
-                            cik = record.get("cik", "Unknown")
-                            company_name = record.get("name", "Unknown")
-                            filings = record.get("filings", {}).get("recent", {})
-                            for i, form in enumerate(filings.get("form", [])):
-                                filing_date = filings.get("filingDate", [])[i]
-                                accession_number = filings.get("accessionNumber", [])[i]
-                                raw_data = json.dumps({
-                                    "form": form,
-                                    "filingDate": filing_date,
-                                    "accessionNumber": accession_number
-                                })
-                                batch.append((cik, company_name, filing_date, form, accession_number, raw_data))
+                    file_batch.append(file_name)
 
-                                # Insert in smaller batches
-                                if len(batch) >= 50:
-                                    cursor.executemany(
-                                        """
-                                        INSERT INTO submissions (cik, company_name, filing_date, form_type, accession_number, raw_data)
-                                        VALUES (%s, %s, %s, %s, %s, %s);
-                                        """,
-                                        batch
-                                    )
-                                    conn.commit()
-                                    batch = []  # Clear the batch after committing
+                # Process in batches of 5 files
+                if len(file_batch) >= 5:
+                    process_file_batch(file_batch, zip_ref, cursor, conn)
+                    file_batch = []  # Clear the batch after processing
 
-                        # Commit any remaining records
-                        if batch:
-                            cursor.executemany(
-                                """
-                                INSERT INTO submissions (cik, company_name, filing_date, form_type, accession_number, raw_data)
-                                VALUES (%s, %s, %s, %s, %s, %s);
-                                """,
-                                batch
-                            )
-                            conn.commit()
-
-                    logging.info(f"Finished processing file: {file_name}")
+            # Process any remaining files
+            if file_batch:
+                process_file_batch(file_batch, zip_ref, cursor, conn)
 
         conn.commit()
         cursor.close()
@@ -99,6 +62,54 @@ def update_submissions_data():
 
     except Exception as e:
         logging.error(f"An error occurred: {e}")
+
+
+def process_file_batch(file_batch, zip_ref, cursor, conn):
+    """Processes a batch of files from the ZIP."""
+    logging.info(f"Processing a batch of {len(file_batch)} files...")
+    for file_name in file_batch:
+        logging.info(f"Processing file: {file_name}")
+        with zip_ref.open(file_name) as f:
+            batch = []
+            for line in f:
+                record = json.loads(line)  # Process each JSON line
+                cik = record.get("cik", "Unknown")
+                company_name = record.get("name", "Unknown")
+                filings = record.get("filings", {}).get("recent", {})
+                for i, form in enumerate(filings.get("form", [])):
+                    filing_date = filings.get("filingDate", [])[i]
+                    accession_number = filings.get("accessionNumber", [])[i]
+                    raw_data = json.dumps({
+                        "form": form,
+                        "filingDate": filing_date,
+                        "accessionNumber": accession_number
+                    })
+                    batch.append((cik, company_name, filing_date, form, accession_number, raw_data))
+
+                    # Insert in smaller chunks
+                    if len(batch) >= 50:
+                        cursor.executemany(
+                            """
+                            INSERT INTO submissions (cik, company_name, filing_date, form_type, accession_number, raw_data)
+                            VALUES (%s, %s, %s, %s, %s, %s);
+                            """,
+                            batch
+                        )
+                        conn.commit()
+                        batch = []  # Clear the batch after committing
+
+            # Commit any remaining records
+            if batch:
+                cursor.executemany(
+                    """
+                    INSERT INTO submissions (cik, company_name, filing_date, form_type, accession_number, raw_data)
+                    VALUES (%s, %s, %s, %s, %s, %s);
+                    """,
+                    batch
+                )
+                conn.commit()
+
+        logging.info(f"Finished processing file: {file_name}")
 
 def get_latest_s1_filing(cik):
     """Extract cik from user. Find latest s-1 for company. Return dictionary of necessary info for lookup. """
