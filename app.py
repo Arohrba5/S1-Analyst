@@ -25,7 +25,8 @@ def process_file(file_name, zip_ref, cursor, conn):
     with zip_ref.open(file_name) as f:
         for line in f:
             try:
-                record = json.loads(line)  # Load one JSON line at a time
+                # Load a single record at a time
+                record = json.loads(line)
                 cik = record.get("cik", "Unknown")
                 company_name = record.get("name", "Unknown")
                 filings = record.get("filings", {}).get("recent", {})
@@ -37,7 +38,7 @@ def process_file(file_name, zip_ref, cursor, conn):
                         "filingDate": filing_date,
                         "accessionNumber": accession_number
                     })
-                    # Insert each record individually
+                    # Insert a single record
                     cursor.execute(
                         """
                         INSERT INTO submissions (cik, company_name, filing_date, form_type, accession_number, raw_data)
@@ -45,7 +46,7 @@ def process_file(file_name, zip_ref, cursor, conn):
                         """,
                         (cik, company_name, filing_date, form, accession_number, raw_data)
                     )
-                    conn.commit()  # Commit after every record
+                    conn.commit()  # Commit after each record
             except Exception as e:
                 logging.error(f"Error processing record in file {file_name}: {e}")
 
@@ -56,11 +57,6 @@ def update_submissions_data():
     try:
         # Paths
         zip_path = "submissions.zip"
-        extract_to = "extracted_data"
-
-        # Ensure the extraction directory exists
-        if not os.path.exists(extract_to):
-            os.makedirs(extract_to)
 
         # Download ZIP file
         logging.info("Downloading ZIP file from SEC...")
@@ -86,15 +82,10 @@ def update_submissions_data():
         conn.commit()
 
         with zipfile.ZipFile(zip_path, "r") as zip_ref:
-            file_count = 0
             for file_name in zip_ref.namelist():
                 if file_name.endswith(".json"):
                     process_file(file_name, zip_ref, cursor, conn)
-                    log_memory_usage()
-                    file_count += 1
-                    if file_count >= 5:  # Process up to 5 files per call
-                        logging.info("Processed 5 files; halting further processing.")
-                        break
+                    log_memory_usage()  # Log memory usage after each file
 
         cursor.close()
         conn.close()
