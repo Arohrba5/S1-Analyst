@@ -13,6 +13,12 @@ SEC_BULK_DATA_URL = "https://www.sec.gov/Archives/edgar/daily-index/bulkdata/sub
 DB_CONNECTION = os.environ.get("DATABASE_URL")  # Heroku Postgres connection string
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
+def log_memory_usage():
+    """Logs the current memory usage of the process."""
+    process = psutil.Process(os.getpid())
+    memory = process.memory_info().rss / (1024 * 1024)  # Convert to MB
+    logging.info(f"Memory usage: {memory:.2f} MB")
+
 def process_file(file_name, zip_ref, cursor, conn):
     """Processes a single JSON file from the ZIP."""
     logging.info(f"Processing file: {file_name}")
