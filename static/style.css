@@ -118,7 +118,7 @@ table {
 
 th, td {
     border: 1px solid #4a90e2 !important;
-    padding: 4px 8px;
+    padding: 15px 15px;
     text-align: left;
     white-space: nowrap;
 }
@@ -131,15 +131,6 @@ th {
 
 td {
     color: #333;
-}
-
-td:nth-child(1),
-td:nth-child(2) {
-    padding-left: 4px;
-}
-
-td:nth-child(3), td:nth-child(4) {
-    padding-left: 4px;
 }
 
 td:nth-child(4) {
