@@ -107,9 +107,13 @@ h1 {
 /* Table Styling */
 table {
     width: 100%;
-    border-collapse: collapse;
+    border-collapse: seperate;
+    border-spacing: 0;
     margin-top: 20px;
     border: 1px solid #4a90e2;
+    border-radius: 10px;
+    overflow: hidden;
+
 }
 
 th, td {
@@ -131,7 +135,12 @@ td {
 
 td:nth-child(1),
 td:nth-child(2) {
-    padding-left: 8px;
+    padding-left: 4px;
+}
+
+td:nth-child(3), td:nth-child(4) {
+    padding-left: 1px;
+    padding-right: 1px;
 }
 
 td:nth-child(4) {
