@@ -17,6 +17,11 @@ def update_submissions_data():
     try:
         # Paths
         zip_path = "submissions.zip"
+        extract_to = "extracted_data"
+
+        # Ensure the extraction directory exists
+        if not os.path.exists(extract_to):
+            os.makedirs(extract_to)
 
         # Download ZIP file
         logging.info("Downloading ZIP file from SEC...")
@@ -39,30 +44,56 @@ def update_submissions_data():
         # Truncate the submissions table
         logging.info("Truncating the submissions table...")
         cursor.execute("TRUNCATE TABLE submissions;")
+        conn.commit()
+
+        # Initialize memory logging function
+        def log_memory_usage():
+            process = psutil.Process(os.getpid())
+            memory = process.memory_info().rss / (1024 * 1024)  # Convert to MB
+            logging.info(f"Memory usage: {memory:.2f} MB")
 
         with zipfile.ZipFile(zip_path, "r") as zip_ref:
-            file_batch = []  # Batch to hold file names
+            file_count = 0
+            batch_size = 1  # Process one file at a time
             for file_name in zip_ref.namelist():
                 if file_name.endswith(".json"):
-                    file_batch.append(file_name)
+                    logging.info(f"Processing file: {file_name}")
+                    with zip_ref.open(file_name) as f:
+                        # Process each JSON line in the file
+                        for line in f:
+                            record = json.loads(line)
+                            cik = record.get("cik", "Unknown")
+                            company_name = record.get("name", "Unknown")
+                            filings = record.get("filings", {}).get("recent", {})
+                            for i, form in enumerate(filings.get("form", [])):
+                                filing_date = filings.get("filingDate", [])[i]
+                                accession_number = filings.get("accessionNumber", [])[i]
+                                raw_data = json.dumps({
+                                    "form": form,
+                                    "filingDate": filing_date,
+                                    "accessionNumber": accession_number
+                                })
+                                cursor.execute(
+                                    """
+                                    INSERT INTO submissions (cik, company_name, filing_date, form_type, accession_number, raw_data)
+                                    VALUES (%s, %s, %s, %s, %s, %s);
+                                    """,
+                                    (cik, company_name, filing_date, form, accession_number, raw_data)
+                                )
+                                conn.commit()  # Commit after every insertion
 
-                # Process in batches of 5 files
-                if len(file_batch) >= 5:
-                    process_file_batch(file_batch, zip_ref, cursor, conn)
-                    file_batch = []  # Clear the batch after processing
+                    log_memory_usage()  # Log memory usage after each file
 
-            # Process any remaining files
-            if file_batch:
-                process_file_batch(file_batch, zip_ref, cursor, conn)
+                    file_count += 1
+                    if file_count >= batch_size:
+                        break
 
-        conn.commit()
         cursor.close()
         conn.close()
         logging.info("Database updated successfully.")
 
     except Exception as e:
         logging.error(f"An error occurred: {e}")
-
 
 def process_file_batch(file_batch, zip_ref, cursor, conn):
     """Processes a batch of files from the ZIP."""
