@@ -118,7 +118,7 @@ table {
 
 th, td {
     border: 1px solid #4a90e2 !important;
-    padding: 15px 15px;
+    padding: 4px 16px;
     text-align: left;
     white-space: nowrap;
 }
