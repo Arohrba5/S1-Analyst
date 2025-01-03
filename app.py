@@ -13,17 +13,10 @@ SEC_BULK_DATA_URL = "https://www.sec.gov/Archives/edgar/daily-index/bulkdata/sub
 DB_CONNECTION = os.environ.get("DATABASE_URL")  # Heroku Postgres connection string
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
-def log_memory_usage():
-    """Logs the current memory usage of the process."""
-    process = psutil.Process(os.getpid())
-    memory = process.memory_info().rss / (1024 * 1024)  # Convert to MB
-    logging.info(f"Memory usage: {memory:.2f} MB")
-
 def process_file(file_name, zip_ref, cursor, conn):
     """Processes a single JSON file from the ZIP and filters for S-1 filings."""
-    logging.info(f"Processing file: {file_name}")
-    with zip_ref.open(file_name) as f:
-        try:
+    try:
+        with zip_ref.open(file_name) as f:
             record = json.load(f)  # Load the entire JSON file
             cik = record.get("cik", "Unknown")
             company_name = record.get("name", "Unknown")
@@ -49,10 +42,9 @@ def process_file(file_name, zip_ref, cursor, conn):
                         (cik, company_name, filing_date, form, accession_number, raw_data)
                     )
                     conn.commit()
-        except Exception as e:
-            logging.error(f"Error processing file {file_name}: {e}")
+    except Exception as e:
+        logging.error(f"Error processing file {file_name}: {e}")
 
-    logging.info(f"Finished processing file: {file_name}")
 
 def update_submissions_data():
     """Download, extract, and update the database with the latest submissions data."""
@@ -83,11 +75,20 @@ def update_submissions_data():
         cursor.execute("TRUNCATE TABLE submissions;")
         conn.commit()
 
+        batch_size = 50  # Log every 50 files
+        file_count = 0
         with zipfile.ZipFile(zip_path, "r") as zip_ref:
             for file_name in zip_ref.namelist():
                 if file_name.endswith(".json"):
                     process_file(file_name, zip_ref, cursor, conn)
-                    log_memory_usage()  # Log memory usage after each file
+                    file_count += 1
+
+                    # Log every `batch_size` files
+                    if file_count % batch_size == 0:
+                        logging.info(f"Processed {file_count} files so far.")
+
+        # Final log for any remaining files
+        logging.info(f"Total files processed: {file_count}")
 
         cursor.close()
         conn.close()
