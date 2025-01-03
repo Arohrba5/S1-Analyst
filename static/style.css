@@ -109,33 +109,42 @@ table {
     width: 100%;
     border-collapse: collapse;
     margin-top: 20px;
+    border: 1px solid #4a90e2;
 }
 
 th, td {
-    border: 1px solid #007bff; /* Matches the button color */
-    padding: 8px 12px;
+    border: 1px solid #4a90e2;
+    padding: 4px 8px;
     text-align: left;
+    white-space: nowrap;
 }
 
 th {
-    background-color: #007bff; /* Matches the button color */
+    background-color: #4a90e2;
     color: white;
+    font-weight: bold;
 }
 
 td {
-    white-space: nowrap; /* Prevents text from running into other cells */
+    color: #333;
+}
+
+td:nth-child(1),
+td:nth-child(2) {
+    padding-left: 8px;
+}
+
+td:nth-child(3),
+td:nth-child(4) {
+    padding-left: 4px;
 }
 
 td a {
-    color: #007bff; /* Matches the button color */
+    color: #4a90e2;
     text-decoration: none;
     font-weight: bold;
 }
 
 td a:hover {
     text-decoration: underline;
-}
-
-td:nth-child(2) {
-    padding-right: 15px; /* Extra space after the company name */
 }
