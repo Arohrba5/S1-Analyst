@@ -103,3 +103,39 @@ form {
 h1 {
     font-size: 2rem; /* Adjust the size as needed */
 }
+
+/* Table Styling */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+th, td {
+    border: 1px solid #007bff; /* Matches the button color */
+    padding: 8px 12px;
+    text-align: left;
+}
+
+th {
+    background-color: #007bff; /* Matches the button color */
+    color: white;
+}
+
+td {
+    white-space: nowrap; /* Prevents text from running into other cells */
+}
+
+td a {
+    color: #007bff; /* Matches the button color */
+    text-decoration: none;
+    font-weight: bold;
+}
+
+td a:hover {
+    text-decoration: underline;
+}
+
+td:nth-child(2) {
+    padding-right: 15px; /* Extra space after the company name */
+}
