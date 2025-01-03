@@ -103,7 +103,7 @@ def process_file_batch(file_batch, zip_ref, cursor, conn):
         with zip_ref.open(file_name) as f:
             batch = []
             for line in f:
-                record = json.loads(line)  # Process each JSON line
+                record = json.loads(line)  # Load one JSON line at a time
                 cik = record.get("cik", "Unknown")
                 company_name = record.get("name", "Unknown")
                 filings = record.get("filings", {}).get("recent", {})
@@ -117,8 +117,8 @@ def process_file_batch(file_batch, zip_ref, cursor, conn):
                     })
                     batch.append((cik, company_name, filing_date, form, accession_number, raw_data))
 
-                    # Insert in smaller chunks
-                    if len(batch) >= 50:
+                    # Insert in small chunks
+                    if len(batch) >= 10:  # Adjust batch size as needed
                         cursor.executemany(
                             """
                             INSERT INTO submissions (cik, company_name, filing_date, form_type, accession_number, raw_data)
@@ -129,7 +129,7 @@ def process_file_batch(file_batch, zip_ref, cursor, conn):
                         conn.commit()
                         batch = []  # Clear the batch after committing
 
-            # Commit any remaining records
+            # Commit any remaining records in the batch
             if batch:
                 cursor.executemany(
                     """
@@ -141,7 +141,16 @@ def process_file_batch(file_batch, zip_ref, cursor, conn):
                 conn.commit()
 
         logging.info(f"Finished processing file: {file_name}")
+        log_memory_usage()  # Log memory usage after each file
 
+def log_memory_usage():
+    """Logs the current memory usage of the process."""
+    import psutil
+    import os
+    process = psutil.Process(os.getpid())
+    memory = process.memory_info().rss / (1024 * 1024)  # Convert to MB
+    logging.info(f"Memory usage: {memory:.2f} MB")
+    
 def get_latest_s1_filing(cik):
     """Extract cik from user. Find latest s-1 for company. Return dictionary of necessary info for lookup. """
     # Ensure 10-digit entry with padding
