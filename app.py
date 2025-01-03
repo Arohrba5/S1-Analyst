@@ -5,12 +5,45 @@ import requests
 import zipfile
 import json
 import logging
+import psutil
 
 app = Flask(__name__)
 
 SEC_BULK_DATA_URL = "https://www.sec.gov/Archives/edgar/daily-index/bulkdata/submissions.zip"
 DB_CONNECTION = os.environ.get("DATABASE_URL")  # Heroku Postgres connection string
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+
+def process_file(file_name, zip_ref, cursor, conn):
+    """Processes a single JSON file from the ZIP."""
+    logging.info(f"Processing file: {file_name}")
+    with zip_ref.open(file_name) as f:
+        for line in f:
+            try:
+                record = json.loads(line)  # Load one JSON line at a time
+                cik = record.get("cik", "Unknown")
+                company_name = record.get("name", "Unknown")
+                filings = record.get("filings", {}).get("recent", {})
+                for i, form in enumerate(filings.get("form", [])):
+                    filing_date = filings.get("filingDate", [])[i]
+                    accession_number = filings.get("accessionNumber", [])[i]
+                    raw_data = json.dumps({
+                        "form": form,
+                        "filingDate": filing_date,
+                        "accessionNumber": accession_number
+                    })
+                    # Insert each record individually
+                    cursor.execute(
+                        """
+                        INSERT INTO submissions (cik, company_name, filing_date, form_type, accession_number, raw_data)
+                        VALUES (%s, %s, %s, %s, %s, %s);
+                        """,
+                        (cik, company_name, filing_date, form, accession_number, raw_data)
+                    )
+                    conn.commit()  # Commit after every record
+            except Exception as e:
+                logging.error(f"Error processing record in file {file_name}: {e}")
+
+    logging.info(f"Finished processing file: {file_name}")
 
 def update_submissions_data():
     """Download, extract, and update the database with the latest submissions data."""
@@ -46,46 +79,15 @@ def update_submissions_data():
         cursor.execute("TRUNCATE TABLE submissions;")
         conn.commit()
 
-        # Initialize memory logging function
-        def log_memory_usage():
-            process = psutil.Process(os.getpid())
-            memory = process.memory_info().rss / (1024 * 1024)  # Convert to MB
-            logging.info(f"Memory usage: {memory:.2f} MB")
-
         with zipfile.ZipFile(zip_path, "r") as zip_ref:
             file_count = 0
-            batch_size = 1  # Process one file at a time
             for file_name in zip_ref.namelist():
                 if file_name.endswith(".json"):
-                    logging.info(f"Processing file: {file_name}")
-                    with zip_ref.open(file_name) as f:
-                        # Process each JSON line in the file
-                        for line in f:
-                            record = json.loads(line)
-                            cik = record.get("cik", "Unknown")
-                            company_name = record.get("name", "Unknown")
-                            filings = record.get("filings", {}).get("recent", {})
-                            for i, form in enumerate(filings.get("form", [])):
-                                filing_date = filings.get("filingDate", [])[i]
-                                accession_number = filings.get("accessionNumber", [])[i]
-                                raw_data = json.dumps({
-                                    "form": form,
-                                    "filingDate": filing_date,
-                                    "accessionNumber": accession_number
-                                })
-                                cursor.execute(
-                                    """
-                                    INSERT INTO submissions (cik, company_name, filing_date, form_type, accession_number, raw_data)
-                                    VALUES (%s, %s, %s, %s, %s, %s);
-                                    """,
-                                    (cik, company_name, filing_date, form, accession_number, raw_data)
-                                )
-                                conn.commit()  # Commit after every insertion
-
-                    log_memory_usage()  # Log memory usage after each file
-
+                    process_file(file_name, zip_ref, cursor, conn)
+                    log_memory_usage()
                     file_count += 1
-                    if file_count >= batch_size:
+                    if file_count >= 5:  # Process up to 5 files per call
+                        logging.info("Processed 5 files; halting further processing.")
                         break
 
         cursor.close()
@@ -95,62 +97,6 @@ def update_submissions_data():
     except Exception as e:
         logging.error(f"An error occurred: {e}")
 
-def process_file_batch(file_batch, zip_ref, cursor, conn):
-    """Processes a batch of files from the ZIP."""
-    logging.info(f"Processing a batch of {len(file_batch)} files...")
-    for file_name in file_batch:
-        logging.info(f"Processing file: {file_name}")
-        with zip_ref.open(file_name) as f:
-            batch = []
-            for line in f:
-                record = json.loads(line)  # Load one JSON line at a time
-                cik = record.get("cik", "Unknown")
-                company_name = record.get("name", "Unknown")
-                filings = record.get("filings", {}).get("recent", {})
-                for i, form in enumerate(filings.get("form", [])):
-                    filing_date = filings.get("filingDate", [])[i]
-                    accession_number = filings.get("accessionNumber", [])[i]
-                    raw_data = json.dumps({
-                        "form": form,
-                        "filingDate": filing_date,
-                        "accessionNumber": accession_number
-                    })
-                    batch.append((cik, company_name, filing_date, form, accession_number, raw_data))
-
-                    # Insert in small chunks
-                    if len(batch) >= 10:  # Adjust batch size as needed
-                        cursor.executemany(
-                            """
-                            INSERT INTO submissions (cik, company_name, filing_date, form_type, accession_number, raw_data)
-                            VALUES (%s, %s, %s, %s, %s, %s);
-                            """,
-                            batch
-                        )
-                        conn.commit()
-                        batch = []  # Clear the batch after committing
-
-            # Commit any remaining records in the batch
-            if batch:
-                cursor.executemany(
-                    """
-                    INSERT INTO submissions (cik, company_name, filing_date, form_type, accession_number, raw_data)
-                    VALUES (%s, %s, %s, %s, %s, %s);
-                    """,
-                    batch
-                )
-                conn.commit()
-
-        logging.info(f"Finished processing file: {file_name}")
-        log_memory_usage()  # Log memory usage after each file
-
-def log_memory_usage():
-    """Logs the current memory usage of the process."""
-    import psutil
-    import os
-    process = psutil.Process(os.getpid())
-    memory = process.memory_info().rss / (1024 * 1024)  # Convert to MB
-    logging.info(f"Memory usage: {memory:.2f} MB")
-    
 def get_latest_s1_filing(cik):
     """Extract cik from user. Find latest s-1 for company. Return dictionary of necessary info for lookup. """
     # Ensure 10-digit entry with padding
