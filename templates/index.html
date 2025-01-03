@@ -24,6 +24,7 @@
                     <a href="https://www.sec.gov/Archives/edgar/data/{{ filing.cik|int }}/{{ filing.accession_number|replace('-', '') }}/index.html" target="_blank">→</a>
                 </td>
             </tr>
+            {% endfor %}
         </tbody>
         </thead>
     </table>
