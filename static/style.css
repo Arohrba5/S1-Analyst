@@ -106,7 +106,7 @@ h1 {
 
 /* Table Styling */
 table {
-    width: 100%;
+    width: auto;
     border-collapse: separate !important;
     border-spacing: 0;
     margin-top: 20px;
