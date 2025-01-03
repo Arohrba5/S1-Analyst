@@ -107,11 +107,11 @@ h1 {
 /* Table Styling */
 table {
     width: 100%;
-    border-collapse: collapse;
+    border-collapse: separate;
     border-spacing: 0;
     margin-top: 20px;
     border: 1px solid #4a90e2 !important;
-    border-radius: 10px;
+    border-radius: 5px;
     overflow: hidden;
 
 }
