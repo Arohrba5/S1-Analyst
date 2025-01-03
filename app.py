@@ -25,12 +25,17 @@ def process_file(file_name, zip_ref, cursor, conn):
     with zip_ref.open(file_name) as f:
         for line in f:
             try:
-                # Load a single record at a time
+                # Load a single record
                 record = json.loads(line)
                 cik = record.get("cik", "Unknown")
                 company_name = record.get("name", "Unknown")
                 filings = record.get("filings", {}).get("recent", {})
+                
+                # Filter only S-1 or S-1/A filings
                 for i, form in enumerate(filings.get("form", [])):
+                    if form not in ["S-1", "S-1/A"]:
+                        continue  # Skip non-S-1 filings
+                    
                     filing_date = filings.get("filingDate", [])[i]
                     accession_number = filings.get("accessionNumber", [])[i]
                     raw_data = json.dumps({
@@ -38,7 +43,8 @@ def process_file(file_name, zip_ref, cursor, conn):
                         "filingDate": filing_date,
                         "accessionNumber": accession_number
                     })
-                    # Insert a single record
+                    
+                    # Insert only S-1 filings
                     cursor.execute(
                         """
                         INSERT INTO submissions (cik, company_name, filing_date, form_type, accession_number, raw_data)
@@ -46,7 +52,7 @@ def process_file(file_name, zip_ref, cursor, conn):
                         """,
                         (cik, company_name, filing_date, form, accession_number, raw_data)
                     )
-                    conn.commit()  # Commit after each record
+                    conn.commit()  # Commit each S-1 filing
             except Exception as e:
                 logging.error(f"Error processing record in file {file_name}: {e}")
 
