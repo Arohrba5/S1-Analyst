@@ -142,7 +142,34 @@ def get_latest_s1_filing(cik):
 
 @app.route('/')
 def home():
-    return render_template('index.html')
+    # Connect to the database
+    conn = psycopg2.connect(DB_CONNECTION)
+    cursor = conn.cursor()
+
+    # Query for the 5 most recent S-1 filings
+    cursor.execute("""
+        SELECT cik, company_name, filing_date, accession_number
+        FROM submissions
+        ORDER BY filing_date DESC
+        LIMIT 5;    
+    """)
+
+    rows = cursor.fetchall()
+    cursor.close()
+    conn.close()
+
+    # Format the data for the table
+    filings = [
+        {
+            "cik": row[0],
+            "company_name": row[1],
+            "filing_date": row[2],
+            "accession_number": row[3],
+        }
+        for row in rows
+    ]
+
+    return render_template('index.html', filings=filings)
 
 @app.route('/search',methods=['POST'])
 def search():
