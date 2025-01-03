@@ -18,7 +18,7 @@ def process_file(file_name, zip_ref, cursor, conn):
     try:
         with zip_ref.open(file_name) as f:
             record = json.load(f)  # Load the entire JSON file
-            cik = record.get("cik", "Unknown")
+            cik = str(record.get("cik", "Unknown")).zfill(10)
             company_name = record.get("name", "Unknown")
             filings = record.get("filings", {}).get("recent", {})
             
