@@ -21,7 +21,7 @@
                 <td>{{ filing.company_name }}</td>
                 <td>{{ filing.filing_date }}</td>
                 <td>
-                    <a href="https://www.sec.gov/Archives/edgar/data/{{ filing.cik|int }}/{{ filing.accession_number|replace('-', '') }}/index.html" target="_blank">→</a>
+                    <a href="https://www.sec.gov/Archives/edgar/data/{{ filing.cik|int }}/{{ filing.accession_number|replace('-', '') }}/{{ filing.primary_document }}" target="_blank">→</a>
                 </td>
             </tr>
             {% endfor %}

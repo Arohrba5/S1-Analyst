@@ -27,19 +27,22 @@ def process_file(file_name, zip_ref, cursor, conn):
                 if form in ["S-1", "S-1/A"]:
                     filing_date = filings.get("filingDate", [])[i]
                     accession_number = filings.get("accessionNumber", [])[i]
+                    primary_document = filings.get("primaryDocument", [])[i]  # Extract primary document
                     raw_data = json.dumps({
                         "form": form,
                         "filingDate": filing_date,
-                        "accessionNumber": accession_number
+                        "accessionNumber": accession_number,
+                        "primaryDocument": primary_document,  # Include in raw_data for completeness
                     })
 
-                    # Insert only relevant filings
+                    # Insert into database
                     cursor.execute(
                         """
-                        INSERT INTO submissions (cik, company_name, filing_date, form_type, accession_number, raw_data)
-                        VALUES (%s, %s, %s, %s, %s, %s);
+                        INSERT INTO submissions (
+                            cik, company_name, filing_date, form_type, accession_number, raw_data, primary_document
+                        ) VALUES (%s, %s, %s, %s, %s, %s, %s);
                         """,
-                        (cik, company_name, filing_date, form, accession_number, raw_data)
+                        (cik, company_name, filing_date, form, accession_number, raw_data, primary_document)
                     )
                     conn.commit()
     except Exception as e:
@@ -49,7 +52,6 @@ def process_file(file_name, zip_ref, cursor, conn):
 def update_submissions_data():
     """Download, extract, and update the database with the latest submissions data."""
     try:
-        # Paths
         zip_path = "submissions.zip"
 
         # Download ZIP file
@@ -70,8 +72,8 @@ def update_submissions_data():
         conn = psycopg2.connect(DB_CONNECTION)
         cursor = conn.cursor()
 
-        # Truncate the submissions table
-        logging.info("Truncating the submissions table...")
+        # Clear the submissions table
+        logging.info("Clearing the submissions table...")
         cursor.execute("TRUNCATE TABLE submissions;")
         conn.commit()
 
@@ -87,7 +89,6 @@ def update_submissions_data():
                     if file_count % batch_size == 0:
                         logging.info(f"Processed {file_count} files so far.")
 
-        # Final log for any remaining files
         logging.info(f"Total files processed: {file_count}")
 
         cursor.close()
@@ -148,23 +149,20 @@ def home():
 
     # Query for the 5 most recent S-1 filings
     cursor.execute("""
-        SELECT cik, company_name, filing_date, accession_number
+        SELECT cik, company_name, filing_date, accession_number, primary_document
         FROM submissions
         ORDER BY filing_date DESC
         LIMIT 5;    
     """)
-
     rows = cursor.fetchall()
-    cursor.close()
-    conn.close()
 
-    # Format the data for the table
     filings = [
         {
             "cik": row[0],
             "company_name": row[1],
             "filing_date": row[2],
             "accession_number": row[3],
+            "primary_document": row[4]
         }
         for row in rows
     ]
