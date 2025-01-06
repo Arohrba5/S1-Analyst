@@ -1,0 +1,14 @@
+{% extends "layout.html" %}
+
+{% block title %}
+Upload File
+{% endblock %}
+
+{% block content %}
+    <h1>Upload Filtered CSV</h1>
+    <form action="/upload" method="POST" enctype="multipart/form-data">
+        <input type="file" name="file" required>
+        <button type="submit">Upload</button>
+    </form>
+    <a href="/">Back to Home</a>
+{% endblock %}
