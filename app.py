@@ -54,11 +54,11 @@ def search():
     filings = load_recent_filings()
 
     if not cik:
-        return render_template('index.html', filing=filings, error="Please enter a CIK.")
+        return render_template('index.html', filings=filings, error="Please enter a CIK.")
     if not cik.isdigit():
-        return render_template('index.html', filing=filings, error="CIK must be a numeric value.")
+        return render_template('index.html', filings=filings, error="CIK must be a numeric value.")
     if len(cik) != 10:
-        return render_template('index.html', filing=filings, error="CIK must be 10 digits in length.")
+        return render_template('index.html', filings=filings, error="CIK must be 10 digits in length.")
 
     result = get_latest_s1_filing(cik)
     if "error" in result:
