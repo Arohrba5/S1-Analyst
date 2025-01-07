@@ -74,7 +74,7 @@ form .btn-primary {
     display: inline-block;
     margin-right: 10px;
     border-radius: 5px; /* Slightly rounded corners */
-    border: 1px solid #ccc; /* Subtle border */
+    border: 2px solid #ccc; /* Subtle border */
     padding: 0.5rem; /* Comfortable padding */
     box-shadow: none; /* Removes default input shadow */
 }
