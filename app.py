@@ -10,10 +10,9 @@ app = Flask(__name__)
 DB_CONNECTION = os.environ.get("DATABASE_URL")  # Heroku Postgres connection string
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
-# Home Route
-@app.route('/')
-def home():
-    # Connect to the database
+# Helper Functions
+def load_recent_filings():
+    """Helper function to load the 5 most recent S-1 filings."""
     conn = psycopg2.connect(DB_CONNECTION)
     cursor = conn.cursor()
 
@@ -22,7 +21,7 @@ def home():
         SELECT cik, company_name, filing_date, form_type, accession_number, primary_document
         FROM submissions
         ORDER BY filing_date DESC
-        LIMIT 5;    
+        LIMIT 5;
     """)
     rows = cursor.fetchall()
     cursor.close()
@@ -40,20 +39,26 @@ def home():
         }
         for row in rows
     ]
+    return filings
 
+# Home Route
+@app.route('/')
+def home():
+    filings = load_recent_filings()
     return render_template('index.html', filings=filings)
 
 # Search Route
 @app.route('/search', methods=['POST'])
 def search():
     cik = request.form.get('cik', '').strip()
+    filings = load_recent_filings()
 
     if not cik:
-        return render_template('index.html', error="Please enter a CIK.")
+        return render_template('index.html', filing=filings, error="Please enter a CIK.")
     if not cik.isdigit():
-        return render_template('index.html', error="CIK must be a numeric value.")
+        return render_template('index.html', filing=filings, error="CIK must be a numeric value.")
     if len(cik) != 10:
-        return render_template('index.html', error="CIK must be 10 digits in length.")
+        return render_template('index.html', filing=filings, error="CIK must be 10 digits in length.")
 
     result = get_latest_s1_filing(cik)
     if "error" in result:
