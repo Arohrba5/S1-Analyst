@@ -5,7 +5,7 @@
 {% endblock %}
 
 {% block main %}
-    <h3>Recent filings</h3>
+    <h3><i class="bi bi-file-earmark-text"></i> Recent filings</h3>
     <table>
         <thead>
             <tr>
@@ -30,7 +30,7 @@
     </table>
     <br>
 
-    <h3>Filing lookup</h3>
+    <h3><i class="bi bi-search"></i> Filing lookup</h3>
     <form action="/search" method="post">
         <input id="cik" name="cik" type="text" class="form-control" placeholder="Search by company CIK" style="max-width: 300px; display: inline-block; margin-right: 10px;">
         <button type="submit" class="btn btn-primary">Look up S-1</button>
