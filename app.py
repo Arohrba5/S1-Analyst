@@ -1,14 +1,19 @@
-from flask import Flask, render_template, request, jsonify, redirect, url_for
-import os
-import psycopg2
 import csv
 import logging
+import os
+
+from bs4 import BeautifulSoup
+from flask import Flask, render_template, request, jsonify, redirect, url_for
+import openai
+import psycopg2
 import requests
 
 app = Flask(__name__)
 
 DB_CONNECTION = os.environ.get("DATABASE_URL")  # Heroku Postgres connection string
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+
+openai.api_key = os.environ.get("OPENAI_API_KEY")
 
 # Helper Functions
 def load_recent_filings():
@@ -41,6 +46,55 @@ def load_recent_filings():
     ]
     return filings
 
+
+def extract_text_from_url(url):
+    """Fetch and extract plain text from an S-1 filing URL."""
+    response = requests.get(url)
+    if response.status_code != 200:
+        return None  # Handle the error gracefully
+    soup = BeautifulSoup(response.content, "html.parser")
+    text = soup.get_text(separator="\n").strip()  # Extract text from the HTML
+    return text
+
+def chunk_text(text, max_chars=3000):
+    """Chunk text into smaller pieces to fit within token limits."""
+    return [text[i:i+max_chars] for i in range(0, len(text), max_chars)]
+
+def summarize_chunk(chunk):
+    """Summarize a single chunk of text using OpenAI API."""
+    prompt = f"Summarize the following SEC S-1 filing text:\n\n{chunk}"
+    try:
+        response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",  # Use GPT-3.5-Turbo for lower cost
+            messages=[
+                {"role": "system", "content": "You are a financial analyst that summarizes SEC filings."},
+                {"role": "user", "content": prompt}
+            ],
+            max_tokens=200,  # Adjust summary length as needed
+            temperature=0.7
+        )
+        return response.choices[0]['message']['content'].strip()
+    except Exception as e:
+        return f"Error summarizing chunk: {e}"
+
+def summarize_filing_from_url(url):
+    """Fetch, chunk, and summarize an S-1 filing from a URL."""
+    # Extract the text from the URL
+    text = extract_text_from_url(url)
+    if not text:
+        return "Error: Could not fetch or extract text from the URL."
+
+    # Chunk the text to stay within token limits
+    chunks = chunk_text(text)
+
+    # Summarize each chunk
+    summaries = [summarize_chunk(chunk) for chunk in chunks]
+
+    # Combine summaries into a single cohesive summary
+    full_summary = "\n".join(summaries)
+    return full_summary
+
+
 # Home Route
 @app.route('/')
 def home():
@@ -68,8 +122,20 @@ def search():
             error=f"{result['error']} Filings older than one year may not appear. Search Edgar for older filings: https://www.sec.gov/edgar/searchedgar/companysearch.html"
         )
     
+    # Extract and summarize the filing
+    filing_url = result.get("url")
+    filing_summary = None
+    try:
+        text = extract_text_from_url(filing_url)
+        if text:
+            filing_summary = summarize_filing_from_url(filing_url)
+        else:
+            filing_summary = "Unable to extract text from the filing URL."
+    except Exception as e:
+        filing_summary = f"An error occurred while summarizing the filing: {str(e)}"
+
     # Pass result to new page
-    return render_template('result.html', filing=result)
+    return render_template('result.html', filing=result, summary=filing_summary)
 
 # Upload Route
 @app.route('/upload', methods=['GET', 'POST'])
