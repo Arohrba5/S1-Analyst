@@ -53,10 +53,12 @@ def extract_text_from_url(url):
         # Fetch the URL
         response = requests.get(url)
         if response.status_code != 200:
+            logging.error(f"Error: Received status code {response.status_code} from URL.")
             return f"Error: Received status code {response.status_code} from URL."
         
-        # Log the first 250 characters of raw HTML for debugging
-        print(f"Raw HTML content (first 200 chars): {response.text[:250]}")
+        # Log the status and the first 250 characters of raw HTML
+        logging.info(f"Received status code: {response.status_code}")
+        logging.info(f"Raw HTML content (first 250 chars): {response.text[:250]}")
 
         # Parse the HTML content
         soup = BeautifulSoup(response.content, "html.parser")
@@ -68,15 +70,16 @@ def extract_text_from_url(url):
         # Extract and clean the text
         text = soup.get_text(separator="\n").strip()
 
-        # Log the first 250 characters of extracted text for debugging
-        print(f"Extracted text (first 250 chars): {text[:250]}")
+        # Log the first 250 characters of extracted text
+        logging.info(f"Extracted text (first 250 chars): {text[:250]}")
 
         # Return the cleaned text or an error message
         return text if text else "Error: No meaningful text found in the HTML content."
 
     except Exception as e:
+        logging.error(f"Exception occurred while fetching or extracting text: {e}")
         return f"Error: An exception occurred while fetching or extracting text: {str(e)}"
-
+    
 def chunk_text(text, max_chars=3000):
     """Chunk text into smaller pieces to fit within token limits."""
     return [text[i:i+max_chars] for i in range(0, len(text), max_chars)]
