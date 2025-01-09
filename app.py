@@ -91,7 +91,7 @@ def extract_text_from_url(url):
         logging.error(f"An exception occurred: {str(e)}")
         return f"Error: An exception occurred while fetching or extracting text: {str(e)}"
     
-def chunk_text(text, max_chars=3000):
+def chunk_text(text, max_chars=15000):
     """Chunk text into smaller pieces to fit within token limits."""
     return [text[i:i+max_chars] for i in range(0, len(text), max_chars)]
 
