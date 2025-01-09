@@ -94,7 +94,8 @@ def summarize_chunk(chunk):
             max_tokens=200,
             temperature=0.7
         )
-        return response.choices[0].message.content.strip()
+        # Extract the response content
+        return response.choices[0].message["content"].strip()
     except Exception as e:
         return f"Error summarizing chunk: {str(e)}"
 
