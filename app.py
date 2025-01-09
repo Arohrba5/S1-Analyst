@@ -115,20 +115,31 @@ def summarize_chunk(chunk):
 
 def summarize_filing_from_url(url):
     """Fetch, chunk, and summarize an S-1 filing from a URL."""
-    # Extract the text from the URL
-    text = extract_text_from_url(url)
-    if not text:
-        return "Error: Could not fetch or extract text from the URL."
+    try:
+        logging.info(f"Summarizing filing from URL: {url}")
+        text = extract_text_from_url(url)
+        if text.startswith("Error:"):
+            logging.error(f"Error extracting text: {text}")
+            return text
 
-    # Chunk the text to stay within token limits
-    chunks = chunk_text(text)
+        # Chunk the text to stay within token limits
+        chunks = chunk_text(text)
+        logging.info(f"Text chunked into {len(chunks)} parts.")
 
-    # Summarize each chunk
-    summaries = [summarize_chunk(chunk) for chunk in chunks]
+        # Summarize each chunk
+        summaries = []
+        for i, chunk in enumerate(chunks):
+            logging.info(f"Summarizing chunk {i+1}/{len(chunks)}...")
+            summaries.append(summarize_chunk(chunk))
 
-    # Generate a cohesive summary of all chunks
-    final_summary = generate_final_summary(summaries)
-    return final_summary
+        # Generate a cohesive summary of all chunks
+        final_summary = generate_final_summary(summaries)
+        logging.info("Final summary generated successfully.")
+        return final_summary
+
+    except Exception as e:
+        logging.error(f"Error in summarize_filing_from_url: {str(e)}")
+        return f"Error: {str(e)}"
 
 def generate_final_summary(chunk_summaries):
     """Generate a cohesive summary of the entire filing from chunk summaries."""
@@ -154,7 +165,6 @@ def home():
     filings = load_recent_filings()
     return render_template('index.html', filings=filings)
 
-# Search Route
 @app.route('/search', methods=['POST'])
 def search():
     cik = request.form.get('cik', '').strip()
@@ -171,20 +181,28 @@ def search():
     if "error" in result:
         # Fallback for old filings
         return render_template(
-            'index.html', 
+            'index.html',
             error=f"{result['error']} Filings older than one year may not appear. Search Edgar for older filings: https://www.sec.gov/edgar/searchedgar/companysearch.html"
         )
-    
+
     # Extract and summarize the filing
     filing_url = result.get("url")
     filing_summary = None
     try:
-        # Use the updated `summarize_filing_from_url` function
-        filing_summary = summarize_filing_from_url(filing_url)
+        logging.info(f"Processing filing from URL: {filing_url}")
+        text = extract_text_from_url(filing_url)
+
+        if text.startswith("Error:"):
+            logging.error(f"Error extracting text: {text}")
+            filing_summary = text
+        else:
+            filing_summary = summarize_filing_from_url(filing_url)
+
     except Exception as e:
+        logging.error(f"Unhandled exception: {str(e)}")
         filing_summary = f"An error occurred while summarizing the filing: {str(e)}"
 
-    # Pass the result and summary to the result page
+    # Pass result to new page
     return render_template('result.html', filing=result, summary=filing_summary)
 
 # Upload Route
