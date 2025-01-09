@@ -55,8 +55,8 @@ def extract_text_from_url(url):
         if response.status_code != 200:
             return f"Error: Received status code {response.status_code} from URL."
         
-        # Log the first 1,000 characters of raw HTML for debugging
-        print(f"Raw HTML content (first 1000 chars): {response.text[:1000]}")
+        # Log the first 250 characters of raw HTML for debugging
+        print(f"Raw HTML content (first 200 chars): {response.text[:250]}")
 
         # Parse the HTML content
         soup = BeautifulSoup(response.content, "html.parser")
@@ -68,8 +68,8 @@ def extract_text_from_url(url):
         # Extract and clean the text
         text = soup.get_text(separator="\n").strip()
 
-        # Log the first 1,000 characters of extracted text for debugging
-        print(f"Extracted text (first 1000 chars): {text[:1000]}")
+        # Log the first 250 characters of extracted text for debugging
+        print(f"Extracted text (first 250 chars): {text[:250]}")
 
         # Return the cleaned text or an error message
         return text if text else "Error: No meaningful text found in the HTML content."
@@ -112,10 +112,27 @@ def summarize_filing_from_url(url):
     # Summarize each chunk
     summaries = [summarize_chunk(chunk) for chunk in chunks]
 
-    # Combine summaries into a single cohesive summary
-    full_summary = "\n".join(summaries)
-    return full_summary
+    # Generate a cohesive summary of all chunks
+    final_summary = generate_final_summary(summaries)
+    return final_summary
 
+def generate_final_summary(chunk_summaries):
+    """Generate a cohesive summary of the entire filing from chunk summaries."""
+    combined_summaries = "\n".join(chunk_summaries)
+    prompt = f"Summarize the following summaries of an SEC S-1 filing into a single cohesive summary:\n\n{combined_summaries}"
+    try:
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": "You are a financial analyst that writes concise, high-level summaries of SEC filings."},
+                {"role": "user", "content": prompt}
+            ],
+            max_tokens=500,  # Adjust this as needed for your desired summary length
+            temperature=0.7
+        )
+        return response.choices[0].message.content.strip()
+    except Exception as e:
+        return f"Error generating final summary: {str(e)}"
 
 # Home Route
 @app.route('/')
@@ -148,15 +165,12 @@ def search():
     filing_url = result.get("url")
     filing_summary = None
     try:
-        text = extract_text_from_url(filing_url)
-        if text:
-            filing_summary = summarize_filing_from_url(filing_url)
-        else:
-            filing_summary = "Unable to extract text from the filing URL."
+        # Use the updated `summarize_filing_from_url` function
+        filing_summary = summarize_filing_from_url(filing_url)
     except Exception as e:
         filing_summary = f"An error occurred while summarizing the filing: {str(e)}"
 
-    # Pass result to new page
+    # Pass the result and summary to the result page
     return render_template('result.html', filing=result, summary=filing_summary)
 
 # Upload Route
