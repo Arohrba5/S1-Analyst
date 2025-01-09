@@ -88,7 +88,7 @@ def summarize_chunk(chunk):
         response = client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[
-                {"role": "system", "content": "You are a financial analyst that summarizes SEC filings."},
+                {"role": "system", "content": "You are a financial analyst that summarizes financial filings that we provide you."},
                 {"role": "user", "content": prompt}
             ],
             max_tokens=200,
