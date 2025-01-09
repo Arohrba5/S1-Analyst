@@ -126,13 +126,16 @@ def summarize_filing_from_url(url):
         chunks = chunk_text(text)
         logging.info(f"Text chunked into {len(chunks)} parts.")
 
-        # Summarize each chunk
+        # Summarize only the first 8 chunks
         summaries = []
         for i, chunk in enumerate(chunks):
+            if i >= 8:  # Stop processing after the first 8 chunks (for MVP)
+                logging.info("Reached the limit of 8 chunks. Stopping further processing.")
+                break
             logging.info(f"Summarizing chunk {i+1}/{len(chunks)}...")
             summaries.append(summarize_chunk(chunk))
 
-        # Generate a cohesive summary of all chunks
+        # Generate a cohesive summary of all processed chunks
         final_summary = generate_final_summary(summaries)
         logging.info("Final summary generated successfully.")
         return final_summary
