@@ -50,14 +50,25 @@ def load_recent_filings():
 def extract_text_from_url(url):
     """Fetch and extract plain text from an S-1 filing URL, with debugging and cleaning."""
     try:
+        # Add a User-Agent header to the request
+        headers = {
+            "User-Agent": "S1 Analyst (alex.s.rohrbach@gmail.com)"
+        }
+
         # Fetch the URL
-        response = requests.get(url)
-        if response.status_code != 200:
-            logging.error(f"Error: Received status code {response.status_code} from URL.")
+        response = requests.get(url, headers=headers)
+
+        # Log the URL being fetched and the status code
+        logging.info(f"Fetching URL: {url}")
+        logging.info(f"Response status code: {response.status_code}")
+
+        if response.status_code == 403:
+            logging.error("Access forbidden (403). Check headers or URL.")
+            return "Error: Access forbidden. Ensure the URL is correct and headers are set properly."
+        elif response.status_code != 200:
             return f"Error: Received status code {response.status_code} from URL."
-        
-        # Log the status and the first 250 characters of raw HTML
-        logging.info(f"Received status code: {response.status_code}")
+
+        # Log the first 250 characters of raw HTML for debugging
         logging.info(f"Raw HTML content (first 250 chars): {response.text[:250]}")
 
         # Parse the HTML content
@@ -70,14 +81,14 @@ def extract_text_from_url(url):
         # Extract and clean the text
         text = soup.get_text(separator="\n").strip()
 
-        # Log the first 250 characters of extracted text
+        # Log the first 250 characters of extracted text for debugging
         logging.info(f"Extracted text (first 250 chars): {text[:250]}")
 
         # Return the cleaned text or an error message
         return text if text else "Error: No meaningful text found in the HTML content."
 
     except Exception as e:
-        logging.error(f"Exception occurred while fetching or extracting text: {e}")
+        logging.error(f"An exception occurred: {str(e)}")
         return f"Error: An exception occurred while fetching or extracting text: {str(e)}"
     
 def chunk_text(text, max_chars=3000):
