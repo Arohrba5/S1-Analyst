@@ -95,7 +95,7 @@ def summarize_chunk(chunk):
             temperature=0.7
         )
         # Access the response content
-        return response.choices[0].message["content"].strip()
+        return response.choices[0].message.content.strip()
     except Exception as e:
         return f"Error summarizing chunk: {str(e)}"
 
