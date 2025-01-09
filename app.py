@@ -4,7 +4,7 @@ import os
 
 from bs4 import BeautifulSoup
 from flask import Flask, render_template, request, jsonify, redirect, url_for
-from openai import OpenAI
+import openai
 import psycopg2
 import requests
 
@@ -13,7 +13,7 @@ app = Flask(__name__)
 DB_CONNECTION = os.environ.get("DATABASE_URL")  # Heroku Postgres connection string
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
-client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+openai.api_key = os.environ.get("OPENAI_API_KEY")
 
 # Helper Functions
 def load_recent_filings():
@@ -85,7 +85,7 @@ def summarize_chunk(chunk):
     """Summarize a single chunk of text using OpenAI API."""
     prompt = f"Summarize the following SEC S-1 filing text:\n\n{chunk}"
     try:
-        response = client.chat.completions.create(
+        response = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
             messages=[
                 {"role": "system", "content": "You are a financial analyst that summarizes SEC filings."},
