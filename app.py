@@ -48,13 +48,34 @@ def load_recent_filings():
 
 
 def extract_text_from_url(url):
-    """Fetch and extract plain text from an S-1 filing URL."""
-    response = requests.get(url)
-    if response.status_code != 200:
-        return None  # Handle the error gracefully
-    soup = BeautifulSoup(response.content, "html.parser")
-    text = soup.get_text(separator="\n").strip()  # Extract text from the HTML
-    return text
+    """Fetch and extract plain text from an S-1 filing URL, with debugging and cleaning."""
+    try:
+        # Fetch the URL
+        response = requests.get(url)
+        if response.status_code != 200:
+            return f"Error: Received status code {response.status_code} from URL."
+        
+        # Log the first 1,000 characters of raw HTML for debugging
+        print(f"Raw HTML content (first 1000 chars): {response.text[:1000]}")
+
+        # Parse the HTML content
+        soup = BeautifulSoup(response.content, "html.parser")
+
+        # Remove non-text elements like scripts and styles
+        for element in soup(["script", "style"]):
+            element.decompose()
+
+        # Extract and clean the text
+        text = soup.get_text(separator="\n").strip()
+
+        # Log the first 1,000 characters of extracted text for debugging
+        print(f"Extracted text (first 1000 chars): {text[:1000]}")
+
+        # Return the cleaned text or an error message
+        return text if text else "Error: No meaningful text found in the HTML content."
+
+    except Exception as e:
+        return f"Error: An exception occurred while fetching or extracting text: {str(e)}"
 
 def chunk_text(text, max_chars=3000):
     """Chunk text into smaller pieces to fit within token limits."""
