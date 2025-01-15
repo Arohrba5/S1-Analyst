@@ -31,16 +31,32 @@
     <br>
 
     <h3><i class="bi bi-search"></i> Filing lookup</h3>
-    <form action="/search" method="post">
-        <input id="cik" name="cik" type="text" class="form-control" placeholder="Search by company CIK" style="max-width: 300px; display: inline-block; margin-right: 10px;">
-        <button type="submit" class="btn btn-primary">Look up S-1</button>
+    <form id="s1-form" action="/search" method="post" onsubmit="showLoading()">
+        <div class="input-group mb-3" style="max-width: 300px;">
+            <input id="cik" name="cik" type="text" class="form-control" placeholder="Search by company CIK" required>
+            <button class="btn btn-primary" type="submit">Look up S-1</button>
+        </div>
     </form>
-    <br>
+
+    <!-- Loading Spinner -->
+    <div id="loading" class="text-center mt-4" style="display: none;">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="mt-2">Loading... Please wait.</p>
+    </div>
+
     <p>
         Don't know your company's CIK (Central Index Key)? Find it 
         <a href="https://www.sec.gov/edgar/search/" target="_blank" rel="noopener">here</a>.
     </p>
     {% if error %}
-    <p style="color: red;">{{ error }}</p>
+    <p class="text-danger">{{ error }}</p>
     {% endif %}
+
+    <script>
+    function showLoading() {
+        document.getElementById("loading").style.display = "block";
+    }
+    </script>
 {% endblock %}
