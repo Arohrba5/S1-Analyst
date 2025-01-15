@@ -31,20 +31,15 @@
     <br>
 
     <h3><i class="bi bi-search"></i> Filing lookup</h3>
-    <form id="s1-form" action="/search" method="post" onsubmit="showLoading()">
-        <div class="input-group mb-3" style="max-width: 300px;">
-            <input id="cik" name="cik" type="text" class="form-control" placeholder="Search by company CIK" required>
-            <button class="btn btn-primary" type="submit">Look up S-1</button>
+    <form id="s1-form" action="/search" method="post" onsubmit="showLoading()" class="d-inline-flex align-items-center">
+        <input id="cik" name="cik" type="text" class="form-control" placeholder="Search by company CIK" style="max-width: 300px; margin-right: 10px;" required>
+        <button type="submit" class="btn btn-primary">Look up S-1</button>
+        <div id="loading" class="ms-3" style="display: none;">
+            <div class="spinner-border text-primary spinner-border-sm" role="status" style="vertical-align: middle;">
+                <span class="visually-hidden">Processing...</span>
+            </div>
         </div>
     </form>
-
-    <!-- Loading Spinner -->
-    <div id="loading" class="mt-4" style="display: none;">
-        <div class="spinner-border text-primary" role="status">
-            <span class="visually-hidden">Loading...</span>
-        </div>
-        <p class="mt-2">Loading... Please wait.</p>
-    </div>
 
     <p>
         Don't know your company's CIK (Central Index Key)? Find it 
@@ -56,7 +51,7 @@
 
     <script>
     function showLoading() {
-        document.getElementById("loading").style.display = "block";
+        document.getElementById("loading").style.display = "inline-block";
     }
     </script>
 {% endblock %}
