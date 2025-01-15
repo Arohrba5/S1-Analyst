@@ -32,12 +32,10 @@
 
     <h3><i class="bi bi-search"></i> Filing lookup</h3>
     <form id="s1-form" action="/search" method="post" onsubmit="showLoading()">
-        <div class="input-group mb-3" style="max-width: 300px;">
-            <input id="cik" name="cik" type="text" class="form-control" placeholder="Search by company CIK" required>
-            <button class="btn btn-primary" type="submit">Look up S-1</button>
-        </div>
+        <input id="cik" name="cik" type="text" class="form-control" placeholder="Search by company CIK" style="max-width: 300px; display: inline-block; margin-right: 10px;" required>
+        <button type="submit" class="btn btn-primary" style="display: inline-block;">Look up S-1</button>
     </form>
-
+    
     <!-- Loading Spinner -->
     <div id="loading" class="mt-4 mb-3" style="display: none; margin-bottom: 20px;">
         <div class="spinner-border text-primary" role="status" style="vertical-align: middle;">
