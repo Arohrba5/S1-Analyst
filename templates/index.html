@@ -31,14 +31,14 @@
     <br>
 
     <h3><i class="bi bi-search"></i> Filing lookup</h3>
-    <form id="s1-form" action="/search" method="post" onsubmit="showLoading()" class="d-inline-flex align-items-center">
+    <form id="s1-form" action="/search" method="post" class="d-inline-flex align-items-center" onsubmit="showLoading()">
         <input id="cik" name="cik" type="text" class="form-control" placeholder="Search by company CIK" style="max-width: 300px; margin-right: 10px;" required>
-        <button type="submit" class="btn btn-primary">Look up S-1</button>
-        <div id="loading" class="ms-3" style="display: none;">
-            <div class="spinner-border text-primary spinner-border-sm" role="status" style="vertical-align: middle;">
+        <button type="submit" class="btn btn-primary d-flex align-items-center">
+            Look up S-1
+            <div id="loading" class="spinner-border text-light spinner-border-sm ms-2" role="status" style="display: none;">
                 <span class="visually-hidden">Processing...</span>
             </div>
-        </div>
+        </button>
     </form>
 
     <p>
