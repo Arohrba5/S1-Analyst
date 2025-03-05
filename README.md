@@ -1,7 +1,7 @@
 # S1 Analyst Flask App
 
 ## Overview
-This MVP version of the S-1 Analyst App is designed for users to quickly find and access SEC S-1 filings. As a venture capitalist, I find it helpful to study S-1 filings to see how pre-IPO companies position their products/services and analyze their financial growth.
+This MVP version of the S-1 Analyst App is designed for users to quickly find and access SEC S-1 filings. When making investment decisions, I find it helpful to study S-1 filings to see how pre-IPO companies position their products/services and analyze their financial growth.
 
 In future iterations, the app will include parsing and analysis of S-1 documents to:
  - Summarize key sections (e.g., company overview, business riks) 
